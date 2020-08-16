@@ -1,6 +1,9 @@
 import telebot
 import config
 import json
+import os
+
+print (os.listdir(path="."))
 
 bot = telebot.TeleBot (config.token)
 words = wordsNumbers = []
@@ -9,7 +12,7 @@ allWordsNumbers = []
 topWordIndex = globalTopWordIndex = allSendMessages = allSendWords = chatIdToUse = allInfo = 0
 
 def saveChanges (clear = False):
-  fileForBackup = open ('topWordCouterBot/textBackup.txt', 'w')
+  fileForBackup = open ('textBackup.txt', 'w')
   fileForBackup.writelines ([json.dumps (allInfo) + '\n', json.dumps ([allWords, allWordsNumbers, globalTopWordIndex])])
   fileForBackup.close ()
 
@@ -19,7 +22,7 @@ def initAllInfo (msg):
   chatIdToUse = str (msg.chat.id)
 
   if (allInfo == 0):
-    fileForBackup = open ('topWordCouterBot/textBackup.txt', 'r')
+    fileForBackup = open ('textBackup.txt', 'r')
     readFromFile = fileForBackup.readlines ()
     fileForBackup.close ()
 
