@@ -1,5 +1,7 @@
 import telebot
+from telebot import types
 import config
+
 import json
 import os
 
@@ -48,6 +50,8 @@ def initAllInfo (msg):
     allSendMessages = allInfo [chatIdToUse] [3]
     allSendWords = allInfo [chatIdToUse] [4]
 
+# Main code
+
 @bot.message_handler (commands = ['start'])
 def start (message):
   global chatIdToUse, allInfo
@@ -63,6 +67,11 @@ def sendHelpMessage (message):
 @bot.message_handler (commands = ['stats'])
 def sendStats (message):
   initAllInfo (message)
+  
+  markup = types.InlineKeyboardMarkup (row_width = 1)
+  item1 = types.InlineKeyboardButton ('Очистить статистику? 🧽', callback_data = 'toClearTrue')
+
+  markup.add (item1)
 
   if (words != []):
     wordWrittenTimes = 1
@@ -86,9 +95,17 @@ def sendStats (message):
 
     toSendAll.append ('Всего было отравлено: ' + str (allSendMessages) + ' сообщений(я) и ' + str (allSendWords) + ' слов(a).')
 
-    bot.send_message (message.chat.id, '\n'.join (toSendAll))
+    bot.send_message (message.chat.id, '\n'.join (toSendAll), reply_markup = markup)
   else:
     bot.send_message (message.chat.id, 'Статиститки нет... 😥')
+
+@bot.callback_query_handler (func = lambda call: True)
+def callbackInline (call):
+  if call.message:
+      if call.data == 'toClearTrue':
+        bot.delete_message (call.message.chat.id, call.message.message_id)
+
+        clearStats (call.message)
 
 @bot.message_handler (commands = ['top_word'])
 def sendTopWord (message):
