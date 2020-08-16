@@ -1,0 +1,3 @@
+token = '1070345881:AAEkT33O7u0jkXU7NQr4qDHl9tTtkV75sIo'
+helpMessage = 'Список команд:\n/top_word - выводит слово, которое было написано самое большое количество раз в вашем чате.\n/global_top_word - выводит слово, которое было написано самое большое количество раз во всех чатах в которых есть данный чат-бот.\n/stats - выводит статистику по всем словам и количество написаных за всё время сообщений и слов.\n/clear_stats - чистит статистику.\n/help - отправляет это сообщение.'
+greetingStickerId = 'CAACAgIAAxkBAAEBLSJfL-axDAdGXuP3mF5J3g3Tfj9IAwACIgADTlzSKWF0vv5zFvwUGgQ'
