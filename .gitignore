@@ -2,4 +2,4 @@ token.env
 .env
 .vscode
 .idea
-__pycache__/*
+__pycache__
