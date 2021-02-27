@@ -1,7 +1,13 @@
+import os
 import telebot
 
-token = '1070345881:AAEkT33O7u0jkXU7NQr4qDHl9tTtkV75sIo'
-telebot = telebot.TeleBot (token)
+from dotenv import load_dotenv
+
+load_dotenv('token.env')
+
+print(os.getenv('TOKEN'))
+token = os.getenv('TOKEN')
+telebot = telebot.TeleBot(token)
 
 allContentEng = {
   'helpMessage': '''
@@ -12,7 +18,7 @@ Commands list:\n
 /global_find_word (word) - displays global statistic about the word which is written instead of "(word)" can be written in format of "(word, word, word, word)" or "(word word word word)", (there can be unlimited number of words).\n
 /stats - display all statistics about words for all time and displays number of send messages and words.
 /clear_stats - clears the stats.\n
-/set_leng - set language.
+/lang - set language.
 /help - sends this message.
 ''',
 
@@ -40,7 +46,7 @@ allContentRu = {
 /global_find_word (слово) - выводит глобальную статистику по слову, которое написано вместо "(слово)" может быть написано в формате "(слово, слово, слово, слово), или "(слово слово слово слово)", (слов может бить от одного до бесконечности).\n
 /stats - выводит статистику по всем словам и количество написаных за всё время сообщений и слов.
 /clear_stats - чистит локальную статистику.\n
-/set_leng - изменить язык.
+/lang - изменить язык.
 /help - отправляет это сообщение.
 ''',
 
@@ -67,7 +73,7 @@ allCommands = {
   's': 'stats',
   'cs': 'clear_stats',
   'h': 'help',
-  'sl': 'set_leng',
+  'sl': 'lang',
 }
 
 greetingStickerId = 'CAACAgIAAxkBAAEBLSJfL-axDAdGXuP3mF5J3g3Tfj9IAwACIgADTlzSKWF0vv5zFvwUGgQ'
@@ -76,10 +82,12 @@ txtPathes = ['./txt/textBackup.txt', './txt/lengSettingsInChats.txt']
 ownerChatID = 726867610
 
 def generateCharsArray (start, howManyChars):
-	result = []
-	for i in range (howManyChars):
-		result.append (chr (i + start))
-	return result
+  """Generates a range of chars, when you provide their range of codes"""
+
+  result = []
+  for i in range (howManyChars):
+    result.append (chr (i + start))
+  return result
 
 letters = generateCharsArray (65, 26)
 letters.extend(generateCharsArray (97, 26))
