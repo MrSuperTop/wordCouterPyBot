@@ -1,11 +1,11 @@
+# ? Imports
 import os
 import telebot
 
 from dotenv import load_dotenv
 
+# * Getting token from enviroment file at creating a bot instace
 load_dotenv('token.env')
-
-print(os.getenv('TOKEN'))
 token = os.getenv('TOKEN')
 telebot = telebot.TeleBot(token)
 
@@ -25,11 +25,11 @@ Commands list:\n
   'allStrings': {
     'hi': ['Hello, ', '! I am - ', '.'],
     'skeyboard': ['Clear stats? 🧽', 'Remove message? ❌', "Remove message and the command: '", "' ? ❌"],
-    's': ['Total was sent: ', ' message(s) and ', ' word(s).', 'Word(s), which was/were written '],
+    's': ['Total was sent: ', ' message(s) and ', ' word(s).', 'Word(s), which was/were written ', ' time(s)'],
     'nos': 'No stats... 😥',
-    'tw': ["The most popular word in this chat is: '", "', it hase been written: ", ' time(s).'],
-    'gtw': "The mose popular word in all chats: '",
-    'sclrd': 'Stats is cleared! 🧽',
+    'tw': 'The most popular word in this chat is "{0}", it was written {1} time(s).',
+    'gtw': 'The mose popular word in all chats is "{0}", it was written {1} time(s)',
+    'sclrd': 'Stats are cleared! 🧽',
     'fw': ["This word '", "' Was written ", 'Word is not found... 😥'],
     'notf': ["Message is deleted!", 'Message and a command was deleted!'],
     'sectl': ['Select lenguage.', 'English language is set!'],
@@ -55,7 +55,7 @@ allContentRu = {
     'skeyboard': ['Очистить статистику? 🧽', 'Удалить сообщение? ❌', "Удалить сообщение и команду: '", "' ? ❌"],
     's': ['Всего было отправлено: ', ' сообщен(ий/я) и ', ' слов(a).', 'Слов(о/а), котор(ое/ые) были написаны '],
     'nos': 'Статистики нет... 😥',
-    'tw': ["Самое популярное слово в этом чате: '", "', было написано: ", ' раз(a).'],
+    'tw': 'Самое популярное слово в этом чате: "{0}", было написано {1} раз(a).',
     'gtw': "Самое популярное слово во всех чатах: '",
     'sclrd': 'Статистика очищена! 🧽',
     'fw': ["Слово '", "' было написано ", 'Слово не найдено... 😥'],
@@ -81,7 +81,7 @@ toGetStats = 'ijAITem1l2XR9KspoGZLfwGfsKUvswLyP3zZM6B1cdPEM1hBPoDXnxcUa8RF7CIl'
 txtPathes = ['./txt/textBackup.txt', './txt/lengSettingsInChats.txt']
 ownerChatID = 726867610
 
-def generateCharsArray (start, howManyChars):
+def generateCharsArray (start=0, howManyChars=1):
   """Generates a range of chars, when you provide their range of codes"""
 
   result = []
