@@ -1,8 +1,5 @@
 # ? Imports
-import config
-
-# * Getting bot variable from config
-bot = config.telebot
+from config import bot
 
 # ? Commands
 @bot.message_handler (commands=['rasputin'])
