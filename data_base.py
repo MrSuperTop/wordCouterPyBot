@@ -1,18 +1,11 @@
 # ? Imports
-
-
-
 from typing import Union, Type
-
-from bson.json_util import default
 
 # * MongoDB
 from mongoengine import connect
 from mongoengine.document import Document, EmbeddedDocument
-from mongoengine.errors import DoesNotExist
 from mongoengine.fields import (BooleanField, DictField, EmbeddedDocumentField,
-                                EmbeddedDocumentListField, IntField, ListField,
-                                StringField)
+                                EmbeddedDocumentListField, IntField, ListField, StringField)
 
 # * Telebot
 from telebot.types import Message
@@ -28,10 +21,11 @@ class Settings(EmbeddedDocument):
   sendPrivate = BooleanField(default=False)
   removeAfter = DictField(default={
     'haveTo': True,
-    'numberOfMessages': 5
+    'value': 5
   })
 
-  lastMessageID = IntField(default=0)
+  lastMessageId = ListField(default=[])
+  editMessageInfo = DictField(default={})
 
   @staticmethod
   def toggleSetting(chat, settingKey: str) -> None:
@@ -48,6 +42,14 @@ class Settings(EmbeddedDocument):
 
     chat.save()
 
+  @staticmethod
+  def setSettingValue(chat, settingKey, value) -> None:
+    currentSetting = chat.settings[settingKey]
+    if isinstance(currentSetting, dict):
+      chat.settings[settingKey]['value'] = value
+
+    chat.save()
+
 class Word(EmbeddedDocument):
   """
   Message Document which will be used in a server document.
@@ -58,19 +60,22 @@ class Word(EmbeddedDocument):
   sentTimes = IntField()
 
 class Chats(Document):
-  """Chat document saves all words + language settings of a chat. Most used word object is save here too"""
+  """
+  Chat document saves all words + language settings of a chat.
+  Most used word object is save here too
+  """
 
   language = StringField()
   ID = IntField()
   settings = EmbeddedDocumentField(Settings)
 
   words = EmbeddedDocumentListField(Word)
-  responses = DictField(default={})
+  topWord = EmbeddedDocumentField(Word)
 
   sentWords = IntField()
   sentMessages = IntField()
 
-  topWord = EmbeddedDocumentField(Word)
+  responses = DictField(default={})
 
   @staticmethod
   def getChat(chatID):
@@ -80,7 +85,7 @@ class Chats(Document):
 
   @staticmethod
   def getSettings(chatID):
-    """Will return a settings object to simplify querry the db"""
+    """Will return a settings object to simplify querring the db"""
 
     settingsObjects = Chats.objects(ID=chatID).get().settings
     return settingsObjects
@@ -140,7 +145,7 @@ class ResponsesManager:
     if not isinstance(ids, list):
       ids = [ids]
 
-    if chatIdSentTo == None:
+    if chatIdSentTo is None:
       chatIdSentTo = self.chat.ID
 
     ids = [id.message_id for id in ids]
@@ -152,12 +157,12 @@ class ResponsesManager:
 
     allChatIds = [int(id[0]) for id in connectedIds.items()]
 
-    for id in ids:
+    for ID in ids:
       if chatIdSentTo in allChatIds:
         # * Adding Id to an array with chatId, which matching one we want to add
-        connectedIds[str(chatIdSentTo)].append(id)
+        connectedIds[str(chatIdSentTo)].append(ID)
       else:
-        connectedIds[str(chatIdSentTo)] = [id]
+        connectedIds[str(chatIdSentTo)] = [ID]
 
     self.chat.save()
 

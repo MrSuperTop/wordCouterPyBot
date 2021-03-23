@@ -25,4 +25,4 @@ def start(message):
     commands.h
   )
 
-  bot.send_message(chatID, greetingString, reply_markup=languageMarkup, parse_mode='HTML')
+  bot.send_message(chatID, greetingString, reply_markup=languageMarkup, parse_mode='html')

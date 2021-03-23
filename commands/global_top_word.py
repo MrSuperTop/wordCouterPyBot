@@ -1,6 +1,6 @@
 # ? Imports
 from config import bot, commands
-from data_base import Chats, Word
+from data_base import Chats
 from help_funcs import getDeleteMarkup
 from language import Language
 
@@ -8,8 +8,13 @@ from language import Language
 # * Command
 @bot.message_handler(commands = [commands.gtw])
 def sendGlobalTopWord(message):
-  # wordWritten = 0
   topWordText = ''
+  chatId = message.chat.id
+
+  # * Checking if we has statistics atleast in one chat
+  if not Chats.objects(words__not__size=0):
+    bot.send_message(chatId, message.replies.nos)
+    return
 
   # * Here will be saved the chat object which was most commonly used word,
   # * none of the words in other chats weren't sent as much times
@@ -18,7 +23,7 @@ def sendGlobalTopWord(message):
   chatWithTop = Chats()
 
   # * Searches for the chat, which has the most used word in it
-  # * (more ditailed description of it is written above the 'chatWithTop' variable defenition)
+  # * (more ditailed description of this is written above the 'chatWithTop' variable defenition)
 
   sentTimes = 0
   while Chats.objects(words__sentTimes__gt=sentTimes):
@@ -30,7 +35,7 @@ def sendGlobalTopWord(message):
       break
     sentTimes += 1
 
-  # * Fooks for this word
+  # * Looks for this word in every chat and add its writtenTime to general
   sentEverywhere = 0
   for chat in Chats.objects(words__text=topWordText):
     for word in chat.words:
@@ -38,4 +43,8 @@ def sendGlobalTopWord(message):
         sentEverywhere += word.sentTimes
 
   resultString = Language(message).strs.gtw.format(topWordText, sentEverywhere)
-  bot.send_message(message.chat.id, resultString, reply_markup=getDeleteMarkup(commands.gtw, message))
+  bot.send_message(
+    chatId,
+    resultString,
+    reply_markup=getDeleteMarkup(commands.gtw, message)
+  )

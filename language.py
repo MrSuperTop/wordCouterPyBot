@@ -1,5 +1,5 @@
 # ? Import
-from typing import Union
+from typing import Union, Type
 
 from telebot.types import CallbackQuery, Message
 
@@ -81,3 +81,14 @@ class Language:
     self._strings = replies[newLanguage]
     self._language = newLanguage
 
+  @staticmethod
+  def byLanguageCode(code: str) -> Union[Type[dotdict], None]:
+    """
+    Will return replies strings for a provided language code ('ru', 'eng', etc.).
+    If the lanugale code is not found in the config will return strings for English.
+    """
+
+    result = replies.get(code, None)
+    if result is None:
+      result = replies.eng
+    return result

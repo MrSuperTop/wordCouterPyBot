@@ -32,26 +32,26 @@ commands = dotdict({
   'tw': 'top_word',
   'gtw': 'global_top_word',
   'fw': 'find_word',
-  'gfw': 'global_fint_word',
   's': 'stats',
   'cs': 'clear_stats',
-  'h': 'help',
+  'stg': 'settings',
   'sl': 'lang',
-  'stg': 'settings'
+  'h': 'help'
 })
 
 # * Diffrent languages strings for bot replies
 replies = dotdict({
   'eng': dotdict({
     'help': '''
-Commands list:\n
-/top_word - displays the word, which has been written the most times in your chat.
-/global_top_word - displays the word, which has been written the most times in all chats.\n
-/find_word (word) - displays local statistic about the word which is written instead of "(word)" can be written in format of "(word, word, word, word)" or "(word word word word)", (there can be unlimited number of words).\n
-/stats - display all statistics about words for all time and displays number of send messages and words.
-/clear_stats - clears the stats.\n
-/lang - set language.
-/help - sends this message.
+<b>Commands list:</b>\n
+/{} - displays the word, which has been written the most times in your chat.
+/{} - displays the word, which has been written the most times in all chats.\n
+/{} (word) - displays local statistic about the word which is written instead of "(word)" can be written in format of "(word, word, word, word)" or "(word word word word)", (there can be unlimited number of words).\n
+/{} - display all statistics about words for all time and displays number of send messages and words.
+/{} - clears the stats.\n
+/{} - set settings. You can turn on/off them and set values. More ditailed inforamtion about each setting is accesible through bot response.\n
+/{} - set language.
+/{} - sends this message.
 ''',
 
     'hi': 'Hello, {0}! I am - {1}.\nFor futher information type "/{2}".\n<b>Here you can set language you prefer:</b>',
@@ -73,22 +73,45 @@ Commands list:\n
       'Nothing found... 😥 Seems like you have written anything like that...',
       'No words to search for where provided 😥, please, provide some after the command'
     ],
-    'notf': ["Message is deleted!", 'Message and a command was deleted!'],
+    'notf': ['Message is deleted!', 'Message and a command was deleted!'],
     'sectl': ['Select lenguage.', 'English language is set!'],
     'cnf': 'Command is not found... 😥. Type "/help" for commands list.',
-    'stg': 'Here you can set your settings'
+    'stg': dotdict({
+      'msgTitle': 'Here you can set your settings',
+      'valueSet': 'Value set!',
+      'editButtonValue': 'To change settings values ⚙.',
+      'moreInfoButtonValue': 'To get more info press here 📰.',
+      'success': 'Setting changed!',
+      'moveToChat': 'To change settings you have to go to the DM: @{0}.',
+      'editorMessage': 'Select a setting you want to edit:',
+      'sendNewValue': 'Set new value for a selected setting.',
+      'valueIsWrong': 'New value doesn\'t mach the requirments...',
+      'changeSuccess': 'The value was updated!',
+
+      'strings': [
+        [['Send stats into private messsages', 'stgSendPrivate', False]],
+        [['Auto delete previous bot responces, when {0} new were sent', 'stgRemoveAfter', True]]
+      ],
+      
+      'additionalInfo': [
+        '<b>Detailed inforamation about each individual setting</b>',
+        '<i><b>{}</b></i> - If tured on will send /stats command response to direct messages, so only you will be able to see it. If you have a lot a of statistics in your chat I would suggest you to turn it on, so /stats messages won\'t "pollute" your chat.',
+        '<i><b>{}</b></i> - If turned on bot will automaticly delete all its respones and commands. In the chat won\'t be anything left behind and if you look through previous messages and some spare stuff disturbs you I would advise you to turn it on and set its value of 10. It will allow to keep you chat history clean and easy to read for people how have fallen behind.'
+      ]
+    })
   }),
   
   'ru': dotdict({
     'help': '''
-Список команд:\n
-/top_word - выводит слово, которое было написано самое большое количество раз в вашем чате.
-/global_top_word - выводит слово, которое было написано самое большое количество раз во всех чатах в которых есть данный чат-бот.\n
-/find_word (слово) - выводит локальную статистику по слову, которое написано вместо "(слово)" может быть написано в формате "(слово, слово, слово, слово), или "(слово слово слово слово)", (слов может бить от одного до бесконечности).\n
-/stats - выводит статистику по всем словам и количество написаных за всё время сообщений и слов.
-/clear_stats - чистит локальную статистику.\n
-/lang - изменить язык.
-/help - отправляет это сообщение.
+<b>Список команд</b>:\n
+/{} - выводит слово, которое было написано самое большое количество раз в вашем чате.
+/{} - выводит слово, которое было написано самое большое количество раз во всех чатах в которых есть данный чат-бот.\n
+/{} (слово) - выводит локальную статистику по слову, которое написано вместо "(слово)" может быть написано в формате "(слово, слово, слово, слово), или "(слово слово слово слово)", (слов может бить от одного до бесконечности).\n
+/{} - выводит статистику по всем словам и количество написаных за всё время сообщений и слов.
+/{} - чистит локальную статистику.\n
+/{} - изменить язык.
+/{} - установить настройки. Можете включать/включать и изменять значение более детальная информация про каждую настройку доступна в сообщении, которые будут преслано.\n
+/{} - отправляет это сообщение.
 ''',
 
   'hi': 'Привет, {0}! Я - {1}.\nДля получения дополнительной информации напишите "/{2}".\nНиже вы можете выбрать предпочитаемый язык:',
@@ -108,26 +131,62 @@ Commands list:\n
   'fw': [
     'Слово "{0}" было написано {1} раз(a).', 
     'Ничего не найдено... 😥 Похоже, вы ничего такого не писали...',
-    'Слова для поиска не были предоставлены 😥, пожалуйста, предоставте слова после команды'
+    'Слова для поиска не были предоставлены 😥, пожалуйста, предоставте слова после команды.'
   ],
   'notf': ['Сообщение удалено!', 'Сообщение и команда удалена!'],
   'sectl': ['Выберете язык.', 'Русский язык установлен!'],
   'cnf': 'Комана не найдена... 😥. Напишите "/help" для списка команд.',
-  'stg': 'Тут можно выбрать настройки'
+  'stg': dotdict({
+    'msgTitle': 'Тут можно выбрать настройки.',
+    'valueSet': 'Значение установлено!',
+    'buttonValue': 'Изменить значения настрек ⚙.',
+    'success': 'Настройка изменена!',
+    'moveToChat': 'Для изменения настроек вам нужно перейти в чат с ботом: @{0}.',
+    'editorMessage': 'Выберете настроку, которую хотите изменить:',
+    'sendNewValue': 'Отправте новое значение для выбраной настроки.',
+    'valueIsWrong': 'Новое значение не удовлетворяет критерии...',
+    'changeSuccess': 'Значение успешно обновлено!',
+
+    'strings': [
+        [['Оправляет статистику в личные сообщения', 'stgSendPrivate', False]],
+        [['Автоматически удаляет старые ответы, когда {0} отравлено', 'stgRemoveAfter', True]]
+      ]
+    # 'noArgsPassed': 'Чтобы установить значение настройки нужно передать её название (одно из списка) и новое значение, которое должно отвечать требованиям...',
+    # 'settingDoesNotExist': 'Такой настройки не существует...',
+    # 'additionalInfo': [
+    #   [
+    #     'Удалять после',
+    #     'Устанавливает количество ответов бота после которых начну удалятся старые. Помогает держать чат в чистоте. Значения могу быть диапазоне от 5 до 100.'
+    #   ]
+    # ]
+  })
 })
 })
 
-# * Settings
+# * Putting command names into all help messages for all languages
+commandNames = [command[1] for command in commands.items()]
+for language, strings in replies.items():
+  strings.help = strings.help.format(*commandNames)
 
-settingsStrings = [
-  ['Send stats into private messsages', 'stgSendPrivate'],
-  ['Auto delete previous bot responces, when X new were sent', 'stgRemoveAfter']
-]
-for setting in settingsStrings:
-  setting.append(decapitalize(setting[1][3:]))
+# ? Strings needed to send responses to /settings command
+# ? and function to get needed parts of the array
 
-# for i, setting in enumerate(settingsStrings):
-#   settingsStrings[i] = setting.append(decapitalize(setting[1][3:]))
+# * list
+allSettingsCallbacks = []
+allSettingsEditingCallbacks = []
+
+for i, (_, languageReplies) in enumerate(replies.items()):
+  for setting in languageReplies.stg.strings:
+    for button in setting:
+      button.append(decapitalize(button[1][3:]))
+      if i >= 1:
+        continue
+
+      allSettingsCallbacks.append(button[1])
+      allSettingsEditingCallbacks.append(button[1].replace('stg', 'edit'))
+
+# * Callbacks for additional /settings message buttons
+additionalButtonCallbacks = ['stgEditValues', 'stgMoreInfo']
 
 # * Some variables and char sets
 implamentedLanguages = [item[0] for item in replies.items()]
@@ -148,5 +207,5 @@ letters = [
 ]
 
 letters += ' '
-specialSymbols = list("""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~""")
+specialSymbols = list("""!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~""")
 numbers = list(string.octdigits)

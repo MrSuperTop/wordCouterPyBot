@@ -1,11 +1,11 @@
 # ? Imports
 from functools import reduce
 from json import dumps
+from string import Formatter, ascii_uppercase
 
-from telebot import types
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from config import letters, settingsStrings, specialSymbols
+from config import letters, specialSymbols, additionalButtonCallbacks
 from data_base import Chats
 from language import Language
 
@@ -54,6 +54,35 @@ def splitSentence (toSplit):
       result.append(word)
 
   return result
+
+def canFormat(string):
+  """Checks if a format method will have any effect"""
+
+  formatSpecialArgs = [tup[1] for tup in Formatter().parse(string) if tup[1] is not None]
+  return bool(formatSpecialArgs)
+
+def splitWhenUppercase(string):
+  """'TestString' to ['Test', 'String']"""
+
+  result = []
+  lastIndex = 0
+
+  for i, char in enumerate(string):
+    if i and char in ascii_uppercase:
+      result.append(string[lastIndex:i])
+      lastIndex = i
+
+  result.append(string[lastIndex:])
+  return result
+
+def settingForUser(string):
+  """
+  Allows to convert "testMessage" to "Test Message.
+  Will be used to repsent settings names for a user in
+  a better looking way.
+  """
+
+  return ' '.join([item.capitalize() for item in splitWhenUppercase(string)])
 
 # * Stats functions
 def stringForStats(chatID, words, wordNumbers, additionalInfo=False, chatName=None):
@@ -105,13 +134,14 @@ def stringForStats(chatID, words, wordNumbers, additionalInfo=False, chatName=No
   for index, message in enumerate(messages):
     singleMessage = []
 
-    if chatName != None and not index:
+    if not chatName is None and not index:
       singleMessage.append(Language(chatID).strs.s[4].format(
         chatName
       ))
 
     for item in message:
-      singleMessage.append(f'{item[0]}\n{", ".join(item[1:])}')
+      messageText = f'{item[0]}\n{", ".join(item[1:])}'
+      singleMessage.append(messageText)
     allMessages.append(singleMessage)
 
   # * Making a string out of our array and adding more info to the string if we want to
@@ -128,6 +158,22 @@ def stringForStats(chatID, words, wordNumbers, additionalInfo=False, chatName=No
 
     # * Adding all together, to get a final result
     result.append('\n\n'.join(message))
+
+  for i, item in enumerate(result):
+    if len(item) >= 3000:
+      del result[i]
+
+      chuncks = []
+      j = 0
+      for j in range(0, len(item), item.index(',', j+2950) + 1):
+        try:
+          chuncks.append(item[0+j:item.index(',', j+2950) + 1])
+        except Exception:
+          chuncks.append(item[j - 1:])
+        # string[0+i:length+string.index(',', i - 50)] for i in range(0, len(string), length)
+
+      for j, chunk in enumerate(chuncks):
+        result.insert(i + j, chunk)
 
   return result
 
@@ -173,29 +219,71 @@ def getLanguageMarkup(currentLanguage):
 
 
 def settingsMarkup(chatID):
-  markup = InlineKeyboardMarkup(row_width=1)
+  markup = InlineKeyboardMarkup()
   currentSettings = Chats.objects(ID=chatID).get().settings
+  settingsStrings = Language(chatID).strs.stg.strings
+
   for index, setting in enumerate(currentSettings):
 
-    # * Will stop the foop if we have already iterated all settings.
+    # * Will stop the foop if we have already iterated through all settings.
     # * Has to be stopped because "settings" object contains not only settings values,
-    # * but some more additional info connected to /settings command
+    # * but some additional info connected to /settings command
 
     if index >= len(settingsStrings):
       break
 
     isOnString = '❌'
     settingObject = currentSettings[setting]
+
     if isinstance(settingObject, bool) and settingObject:
       isOnString = '✅'
     elif isinstance(settingObject, dict) and settingObject['haveTo']:
       isOnString = '✅'
 
-    tempButton = InlineKeyboardButton(
-      f'{settingsStrings[index][0]} {isOnString}',
-      callback_data=settingsStrings[index][1]
-    )
+    # * Creaing and adding all buttons to the markup. Will create using 2D array in config
+    newButtons = []
+    for index, buttonInfo in enumerate(settingsStrings[index]):
+      buttonText = buttonInfo[0]
 
-    markup.add(tempButton)
+      # * Formating button text if can be formated
+      if canFormat(buttonText):
+        buttonText = buttonText.format(settingObject['value'])
+
+      tempButton = InlineKeyboardButton(
+        f'{buttonText}',
+        callback_data=buttonInfo[1],
+      )
+
+      if not index:
+        tempButton = InlineKeyboardButton(
+          f'{buttonText} {isOnString}',
+          callback_data=buttonInfo[1]
+        )
+
+      newButtons.append(tempButton)
+
+    markup.row(*newButtons)
+
+  # ? Additional buttons
+  buttonText = Language(chatID).strs.stg
+
+  # * Editing button
+  markup.row(InlineKeyboardButton(
+    buttonText.editButtonValue,
+    callback_data=additionalButtonCallbacks[0]
+  ))
+
+  # * Button to get more info
+  markup.row(InlineKeyboardButton(
+    buttonText.moreInfoButtonValue,
+    callback_data=additionalButtonCallbacks[1]
+  ))
+
+    # tempButton = InlineKeyboardButton(
+    #   f'{settingsStrings[index][0]} {isOnString}',
+    #   callback_data=settingsStrings[index][1]
+    # )
+
+    # markup.add(tempButton)
 
   return markup

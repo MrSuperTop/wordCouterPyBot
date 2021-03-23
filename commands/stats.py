@@ -1,4 +1,6 @@
 # ? Imports
+from json import dumps
+
 from telebot import types, util, apihelper
 from config import bot, commands
 from data_base import Chats, ResponsesManager
@@ -17,7 +19,7 @@ def sendStats(message):
   chatID = message.chat.id
   clearButton = types.InlineKeyboardButton(
     message.replies.skeyboard[0],
-    callback_data='toClearTrue'
+    callback_data=dumps(['toClearTrue', chatID])
   )
 
   # * Getting info from the DB to pass into the function
@@ -26,7 +28,13 @@ def sendStats(message):
   wordNumbers = [word.sentTimes for word in wordObjects]
   words = [word.text for word in wordObjects]
 
-  formatedStrings = stringForStats(chatID, words, wordNumbers, True, message.chat.username)
+  sendToPrivate = Chats.getSettings(chatID)['sendPrivate']
+
+  chatName = None
+  if sendToPrivate:
+    chatName = message.chat.username
+
+  formatedStrings = stringForStats(chatID, words, wordNumbers, True, chatName)
   markup = None
 
   # * Allowes to save message ids. More info in the class doc string
@@ -39,7 +47,7 @@ def sendStats(message):
 
   # * If specified in settings will set chatID variable to users chat id,
   # * so the statistics will be sent not to the chat but to user pesonaly.
-  if Chats.getSettings(chatID)['sendPrivate']:
+  if sendToPrivate:
     chatID = message.from_user.id
 
   if formatedStrings:
@@ -53,7 +61,7 @@ def sendStats(message):
 
         tempMessage = bot.send_message(
           chatID, part,
-          reply_markup=markup, disable_notification=True, parse_mode='HTML'
+          reply_markup=markup, disable_notification=True, parse_mode='html'
         )
 
         editor.addIDs(message.message_id, tempMessage, chatID)
@@ -78,7 +86,8 @@ def sendStats(message):
             chatID
           )
 
-    except apihelper.ApiException:
+    except apihelper.ApiException as e:
+      print(e)
       editor.addIDs(
         message.message_id,
         bot.send_message(
