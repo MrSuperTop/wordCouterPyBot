@@ -5,7 +5,7 @@ from string import Formatter, ascii_uppercase
 
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from config import letters, specialSymbols, additionalButtonCallbacks
+from config import bot, letters, specialSymbols, additionalButtonCallbacks
 from data_base import Chats
 from language import Language
 
@@ -75,7 +75,7 @@ def splitWhenUppercase(string):
   result.append(string[lastIndex:])
   return result
 
-def settingForUser(string):
+def settingForUser(string: str) -> str:
   """
   Allows to convert "testMessage" to "Test Message.
   Will be used to repsent settings names for a user in
@@ -130,10 +130,8 @@ def stringForStats(chatID, words, wordNumbers, additionalInfo=False, chatName=No
   # & 'Word(s), which was/were written 1 time(s).\n"first"'
 
   allMessages = []
-
   for index, message in enumerate(messages):
     singleMessage = []
-
     if not chatName is None and not index:
       singleMessage.append(Language(chatID).strs.s[4].format(
         chatName
@@ -261,7 +259,6 @@ def settingsMarkup(chatID):
         )
 
       newButtons.append(tempButton)
-
     markup.row(*newButtons)
 
   # ? Additional buttons
@@ -270,7 +267,7 @@ def settingsMarkup(chatID):
   # * Editing button
   markup.row(InlineKeyboardButton(
     buttonText.editButtonValue,
-    callback_data=additionalButtonCallbacks[0]
+    callback_data=additionalButtonCallbacks[0],
   ))
 
   # * Button to get more info
@@ -278,6 +275,9 @@ def settingsMarkup(chatID):
     buttonText.moreInfoButtonValue,
     callback_data=additionalButtonCallbacks[1]
   ))
+
+  # * Button to move to Bot's chat
+  addUrlButton(markup, Language(chatID).strs.goToBot[0], bot.get_me().username)
 
     # tempButton = InlineKeyboardButton(
     #   f'{settingsStrings[index][0]} {isOnString}',
@@ -287,3 +287,9 @@ def settingsMarkup(chatID):
     # markup.add(tempButton)
 
   return markup
+
+# * Redict button editor
+def addUrlButton(markup, text, username):
+  markup.row(
+    InlineKeyboardButton(text, 'https://t.me/' + username)
+  )

@@ -1,10 +1,10 @@
 # ? Imports
 from json import dumps
 
-from telebot import types, util, apihelper
+from telebot import types, apihelper
 from config import bot, commands
 from data_base import Chats, ResponsesManager
-from help_funcs import getDeleteMarkup, stringForStats
+from help_funcs import getDeleteMarkup, stringForStats, addUrlButton
 
 
 # * Command
@@ -58,6 +58,9 @@ def sendStats(message):
       for index, part in enumerate(formatedStrings):
         if index + 1 == len(formatedStrings):
           markup = getDeleteMarkup(commands.s, message, clearButton)
+          if message.chat.username and Chats.getSettings(message.chat.id)['sendPrivate']:
+            addUrlButton(markup, message.replies.goToChat[0], message.chat.username)
+
 
         tempMessage = bot.send_message(
           chatID, part,
@@ -67,24 +70,18 @@ def sendStats(message):
         editor.addIDs(message.message_id, tempMessage, chatID)
 
       if Chats.getSettings(message.chat.id)['sendPrivate'] and message.chat.type != 'private':
+        markup = types.InlineKeyboardMarkup()
+        addUrlButton(markup, message.replies.goToBot[1], bot.get_me().username)
+
         editor.addIDs(
           message.message_id,
           bot.send_message(
             message.chat.id,
             message.replies.s[2].format(
               bot.get_me().username
-        )))
-
-        if message.chat.username:
-          editor.addIDs(
-            message.message_id,
-            bot.send_message(
-              chatID,
-              message.replies.s[5].format(
-                message.chat.username
-            )),
-            chatID
-          )
+            ),
+            reply_markup=markup
+          ))
 
     except apihelper.ApiException as e:
       print(e)

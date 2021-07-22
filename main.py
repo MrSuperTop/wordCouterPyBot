@@ -4,21 +4,21 @@
 from json import loads
 
 # * Telegram Liblary
-from telebot import types, apihelper
+from telebot import apihelper, types
 
 apihelper.ENABLE_MIDDLEWARE = True
-
-from config import bot
-from fun_stuff import *
-from help_funcs import *
-
-# * Modules needed to work with mongoDB and those using them to get info
-from data_base import ResponsesManager, Word, Chats, checkChat, ResponsesManager, Settings
-from language import Language
 
 # ? Commands
 # * Will run all commands in the commands folder throungh __init__.py
 import commands as cmnds
+from config import bot
+
+# * Modules needed to work with mongoDB and those using them to get info
+from data_base import Chats, ResponsesManager, Word, checkChat
+from fun_stuff import *
+from help_funcs import *
+from language import Language
+
 cmnds.runCommands()
 
 savedMessageID = -1
@@ -33,48 +33,6 @@ def modifyMessage(bot_instance, message):
 
   # * Setting bot replies
   message.replies = Language(message.chat.id).strs
-
-  # ? Settings
-  # * Checking if a message id an a chat id match a those which are in the DB.
-  # * Then we assume, that the message it's a new value for a setting, so we
-  # * change it.
-
-  editMessageInfo = currentChat.settings.editMessageInfo
-  if (editMessageInfo and
-      editMessageInfo['requestMessageId'] + 1 == message.message_id and
-      editMessageInfo['requestChatId'] == message.chat.id):
-    editArgument = message.text.split()[0]
-
-    try:
-      # * Changing setting value and sending user a reponse
-      originalChatId = editMessageInfo['originalChatId']
-      chatWeToChange = Chats.getChat(originalChatId)
-      strings = Language(originalChatId).strs
-      originalChat = Chats.getChat(originalChatId)
-
-      Settings.setSettingValue(
-        chatWeToChange,
-        editMessageInfo['commandName'],
-        int(editArgument)
-      )
-
-      bot.edit_message_text(
-        strings.stg.msgTitle,
-        originalChat.ID,
-        originalChat.settings.lastMessageId[0],
-        reply_markup=settingsMarkup(originalChatId)
-      )
-
-      # * Clearing used info
-      currentChat.settings.editMessageInfo = {}
-
-      # * Answering
-      bot.answer_callback_query(
-        editMessageInfo['callbackId'],
-        message.replies.stg.changeSuccess
-      )
-    except ValueError:
-      bot.send_message(chatID, message.replies.stg.valueIsWrong)
 
   # ? Resposes
   # * Saving bot responses to the DB trough ReponsesManager class and deleting old messages
@@ -221,7 +179,7 @@ def callbackInline(call):
     if call.data == 'deleteWithCommand':
       bot.answer_callback_query(call.id, show_alert=False, text=call.replies.notf[1])
       bot.delete_message(chatID, call.message.message_id)
-      bot.delete_message(chatID, call.additionalInfo) # ! HERE
+      bot.delete_message(chatID, call.additionalInfo)
 
     # * Handles changing language settings
     if call.data == 'setLangRu':

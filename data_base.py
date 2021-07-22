@@ -14,6 +14,7 @@ from telebot.types import Message
 # * Connection to the local Mongo DB
 connect('word-counter-bot')
 
+
 # ? Documents
 class Settings(EmbeddedDocument):
   """Chat settings, unicue for each chat"""
@@ -41,6 +42,13 @@ class Settings(EmbeddedDocument):
       chat.settings[settingKey]['haveTo'] = not currentSetting['haveTo']
 
     chat.save()
+
+  @staticmethod
+  def getSettingsValue(chat, settingKey) -> None:
+    currentSetting = chat.settings[settingKey]
+    if isinstance(currentSetting, dict):
+      return chat.settings[settingKey]['value']
+    return currentSetting
 
   @staticmethod
   def setSettingValue(chat, settingKey, value) -> None:

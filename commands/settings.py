@@ -4,7 +4,7 @@ from json import dumps
 from config import (additionalButtonCallbacks, allSettingsCallbacks,
                     allSettingsEditingCallbacks, bot, commands)
 from data_base import Chats, Settings, checkChat
-from help_funcs import settingForUser, settingsMarkup
+from help_funcs import settingForUser, settingsMarkup, addUrlButton
 from language import Language
 from telebot.apihelper import ApiException
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -67,7 +67,7 @@ def callbackSettings(call):
     bot.edit_message_text(
       Language(chatId).strs.stg.msgTitle, chatId,
       call.message.message_id,
-      reply_markup=markup
+      reply_markup=markup,
     )
 
     bot.answer_callback_query(call.id, Language(chatId).strs.stg.success)
@@ -87,11 +87,6 @@ def callbackAdditionalButtons(call):
     botReplies = call.replies.stg
     userDmId = currentChat.settings.lastMessageId[1]
 
-    # * Sending a message with a tag to move to bot's chat
-    bot.send_message(chatId, botReplies.moveToChat.format(
-      bot.get_me().username
-    ))
-
     # * Creating a markup with all settings names, whose value can be edited
     markup = InlineKeyboardMarkup()
     for setting in settingsStrings:
@@ -100,7 +95,6 @@ def callbackAdditionalButtons(call):
           # * Converts in a strange way to get 'Test String' from 'testString'
           text = settingForUser(button[3])
           tempButton = InlineKeyboardButton(
-            # ~ Converts 'testMessage' to 'Test Message'
             text,
             callback_data=dumps([
               button[1].replace('stg', 'edit'),
@@ -113,6 +107,10 @@ def callbackAdditionalButtons(call):
     dmChat = Chats.getChat(userDmId)
     dmChat.settings.editMessageInfo['originalChatId'] = call.message.chat.id
     dmChat.save()
+
+    originalChatUsername = call.message.chat.username
+    if originalChatUsername:
+      addUrlButton(markup, call.replies.goToChat[0], originalChatUsername)
 
     bot.send_message(userDmId, botReplies.editorMessage, reply_markup=markup)
 
@@ -185,3 +183,85 @@ def callbackSettingsEditors(call):
 #     bot.answer_inline_query(inline_query.id, allArticles)
 #   except IndexError:
 #     print(e)
+
+# ? Hadling changing messages
+@bot.middleware_handler(update_types=['message'])
+def modifyMessage(bot_instance, message):
+  # * Checking if a message id an a chat id match a those which are in the DB.
+  # * Then we assume, that the message it's a new value for a setting, so we
+  # * change it.
+  print(message.message_id)
+
+  currentChat = Chats.getChat(message.chat.id)
+  editMessageInfo = currentChat.settings.editMessageInfo
+
+  if (editMessageInfo and
+      editMessageInfo['requestMessageId'] + 1 == message.message_id and
+      editMessageInfo['requestChatId'] == message.chat.id):
+
+    try:
+      editArgument = int(message.text.split()[0])
+
+      # * Changing setting value and sending user a reponse
+      originalChatId = editMessageInfo['originalChatId']
+      chatWeToChange = Chats.getChat(originalChatId)
+      strings = Language(originalChatId).strs
+      originalChat = Chats.getChat(originalChatId)
+
+      # * Checking if new value is not the same as it was before
+      oldValue = Settings.getSettingsValue(originalChat, editMessageInfo['commandName'])
+      print(editArgument, oldValue)
+      if editArgument == oldValue:
+        raise ValueError()
+
+    except ValueError as e:
+      print(e)
+      bot.send_message(message.chat.id, strings.stg.valueIsWrong)
+      editMessageInfo['requestMessageId'] = message.message_id + 1
+      currentChat.save()
+
+    # * Changes setting
+    Settings.setSettingValue(
+      chatWeToChange,
+      editMessageInfo['commandName'],
+      editArgument
+    )
+
+    # * Deleting the spare replies, when the number of saved replies
+    # * is higher then the new value of removeAfter
+
+    idsToRemove = []
+    if editMessageInfo['commandName'] == 'removeAfter' and oldValue > editArgument:
+      for i, response in enumerate(originalChat.responses.items()):
+        if i >= oldValue - editArgument:
+          break
+
+        try:
+          bot_instance.delete_message(originalChatId, int(response[0]))
+          if response[1]['connectedIDs']:
+            for chatId, ids in response[1]['connectedIDs'].items():
+              for id in ids:
+                # pass
+                bot_instance.delete_message(int(chatId), id)
+        except ApiException as e:
+          print(e)
+
+        idsToRemove.append(response[0])
+
+      for toRemove in idsToRemove:
+        del originalChat.responses[toRemove]
+      originalChat.save()
+
+    # * Updates settings message in the originalChat
+    bot.edit_message_text(
+      strings.stg.msgTitle,
+      originalChatId,
+      originalChat.settings.lastMessageId[0],
+      reply_markup=settingsMarkup(originalChatId)
+    )
+
+    # * Answering
+    bot.answer_callback_query(
+      editMessageInfo['callbackId'],
+      strings.stg.changeSuccess
+    )
