@@ -1,4 +1,5 @@
-token.env
+.env.local
+
 .env
 .vscode
 .idea

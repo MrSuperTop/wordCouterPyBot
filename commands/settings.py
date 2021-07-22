@@ -190,9 +190,12 @@ def modifyMessage(bot_instance, message):
   # * Checking if a message id an a chat id match a those which are in the DB.
   # * Then we assume, that the message it's a new value for a setting, so we
   # * change it.
-  print(message.message_id)
 
   currentChat = Chats.getChat(message.chat.id)
+  
+  if currentChat is None:
+    return
+
   editMessageInfo = currentChat.settings.editMessageInfo
 
   if (editMessageInfo and

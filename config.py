@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 # ? Getting all info from .env and creating help functions and classes
 # * Getting token from enviroment file at creating a bot instace
-load_dotenv('token.env')
+load_dotenv('.env.local')
 token = os.getenv('TOKEN')
 bot = telebot.TeleBot(token, num_threads=4)
 

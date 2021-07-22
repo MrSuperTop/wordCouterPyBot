@@ -1,4 +1,5 @@
 # ? Imports
+from os import getenv
 from typing import Union, Type
 
 # * MongoDB
@@ -12,7 +13,7 @@ from telebot.types import Message
 
 
 # * Connection to the local Mongo DB
-connect('word-counter-bot')
+connect(host=getenv('MONGO_DB_URI'))
 
 
 # ? Documents
@@ -89,7 +90,10 @@ class Chats(Document):
   def getChat(chatID):
     """Will return a chat object when ID is provided"""
 
-    return Chats.objects(ID=chatID).get()
+    try:
+      return Chats.objects(ID=chatID).get()
+    except Chats.DoesNotExist:
+      return None
 
   @staticmethod
   def getSettings(chatID):
